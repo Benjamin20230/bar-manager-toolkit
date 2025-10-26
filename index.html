@@ -6,530 +6,84 @@
   <title>Bar Manager Toolkit — Digital Drinks (MVP)</title>
   <meta name="description" content="App gratuita para bar managers: costeo de recetas, inventario & par, checklist, registro de merma y notas. Guarda datos en tu navegador.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23000000'/><text x='50' y='60' font-size='50' text-anchor='middle' fill='white' font-family='Arial'>BM</text></svg>">
-  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- React + ReactDOM + Babel (for JSX in browser) -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <style>
-    body { background: #f8fafc; }
-  </style>
+  <style>body{background:#f8fafc}</style>
 </head>
 <body>
   <div id="root"></div>
 
-  <script type="text/babel">
+  <!-- IMPORTANT: data-presets set so JSX compiles -->
+  <script type="text/babel" data-presets="react">
     const { useEffect, useMemo, useState } = React;
-
     const LS_KEY = "bar_manager_toolkit_v1";
-
     function usePersistentState(defaultState) {
       const [state, setState] = useState(() => {
-        try {
-          const raw = localStorage.getItem(LS_KEY);
-          return raw ? JSON.parse(raw) : defaultState;
-        } catch (e) {
-          console.warn("Failed to load localStorage state", e);
-          return defaultState;
-        }
+        try { const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : defaultState; }
+        catch(e){ console.warn("Failed to load localStorage state", e); return defaultState; }
       });
-
-      useEffect(() => {
-        try {
-          localStorage.setItem(LS_KEY, JSON.stringify(state));
-        } catch (e) {
-          console.warn("Failed to save localStorage state", e);
-        }
-      }, [state]);
-
-      return [state, setState];
+      useEffect(()=>{ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){ console.warn("Failed to save", e);} },[state]);
+      return [state,setState];
     }
+    const currency = (n)=>{ if(n===undefined||n===null||isNaN(n)) return "-"; try{ return new Intl.NumberFormat(undefined,{style:"currency",currency:"USD"}).format(n);}catch{return "$"+Number(n).toFixed(2);} };
 
-    const currency = (n) => {
-      if (n === undefined || n === null || isNaN(n)) return "-";
-      try {
-        return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(n);
-      } catch {
-        return "$" + Number(n).toFixed(2);
-      }
-    };
-
-    function App() {
-      const [db, setDb] = usePersistentState({
-        activeTab: "costing",
-        costing: {
-          drinks: [
-            {
-              id: (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)),
-              name: "Código Naranja (ejemplo)",
-              targetMarginPct: 75,
-              ingredients: [
-                { id: (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)), name: "Seco Herrerano", unitSize: 750, unitCost: 12.0, qtyPerDrink: 45 },
-                { id: (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)), name: "Triple sec", unitSize: 700, unitCost: 10.0, qtyPerDrink: 20 },
-                { id: (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)), name: "Yuzu cordial", unitSize: 1000, unitCost: 18.0, qtyPerDrink: 20 },
-              ],
-              garnishCost: 0.15,
-              overheadPerDrink: 0.25,
-            },
-          ],
-        },
-        inventory: {
-          items: [
-            { id: (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)), name: "Seco Herrerano 750ml", onHand: 24, parLevel: 36, unitCost: 12.0 },
-            { id: (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)), name: "Limas", onHand: 80, parLevel: 120, unitCost: 0.18 },
-          ],
-        },
-        checklist: {
-          tasks: [
-            { id: (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)), text: "Hielo lleno y limpio", done: false },
-            { id: (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)), text: "Mise en place completo (jugos, siropes)", done: false },
-            { id: (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)), text: "Cristalería pulida", done: false },
-            { id: (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)), text: "Caja chica y POS listos", done: false },
-          ],
-        },
-        waste: {
-          entries: [],
-        },
-        notes: "",
+    function App(){
+      const [db,setDb]=usePersistentState({
+        activeTab:"costing",
+        costing:{drinks:[{id: (crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),name:"Código Naranja (ejemplo)",targetMarginPct:75,ingredients:[{id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),name:"Seco Herrerano",unitSize:750,unitCost:12,qtyPerDrink:45},{id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),name:"Triple sec",unitSize:700,unitCost:10,qtyPerDrink:20},{id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),name:"Yuzu cordial",unitSize:1000,unitCost:18,qtyPerDrink:20}],garnishCost:0.15,overheadPerDrink:0.25}]},
+        inventory:{items:[{id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),name:"Seco Herrerano 750ml",onHand:24,parLevel:36,unitCost:12},{id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),name:"Limas",onHand:80,parLevel:120,unitCost:0.18}]},
+        checklist:{tasks:[{id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),text:"Hielo lleno y limpio",done:false},{id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),text:"Mise en place completo (jugos, siropes)",done:false},{id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),text:"Cristalería pulida",done:false},{id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),text:"Caja chica y POS listos",done:false}]},
+        waste:{entries:[]},notes:""
       });
-
-      const tabs = [
-        { id: "costing", label: "Costeo de Recetas" },
-        { id: "inventory", label: "Inventario & Par" },
-        { id: "checklist", label: "Checklist de Turno" },
-        { id: "waste", label: "Merma / Waste" },
-        { id: "notes", label: "Notas" },
-        { id: "help", label: "Ayuda" },
-      ];
-
-      const setActiveTab = (id) => setDb((s) => ({ ...s, activeTab: id }));
-
-      const handleExport = () => {
-        const blob = new Blob([JSON.stringify(db, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = \`bar-manager-toolkit-\${new Date().toISOString().slice(0,10)}.json\`;
-        a.click();
-        URL.revokeObjectURL(url);
-      };
-
-      const handleImport = (file) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            const parsed = JSON.parse(reader.result);
-            setDb(parsed);
-          } catch (e) {
-            alert("Archivo inválido. Debe ser JSON exportado por esta app.");
-          }
-        };
-        reader.readAsText(file);
-      };
-
-      return (
-        <div className="min-h-screen bg-slate-50 text-slate-900">
-          <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-slate-200">
-            <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-2xl bg-slate-900 text-white grid place-items-center font-bold">BM</div>
-                <div>
-                  <h1 className="text-xl font-semibold leading-tight">Bar Manager Toolkit</h1>
-                  <p className="text-xs text-slate-500 -mt-0.5">Free, local-first tools for busy bar managers</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="px-3 py-1.5 text-sm rounded-xl bg-slate-100 hover:bg-slate-200 cursor-pointer">
-                  Importar JSON
-                  <input type="file" accept="application/json" className="hidden" onChange={(e) => e.target.files?.[0] && handleImport(e.target.files[0])} />
-                </label>
-                <button onClick={handleExport} className="px-3 py-1.5 text-sm rounded-xl bg-slate-900 text-white hover:opacity-90">Exportar</button>
-              </div>
+      const tabs=[{id:"costing",label:"Costeo de Recetas"},{id:"inventory",label:"Inventario & Par"},{id:"checklist",label:"Checklist de Turno"},{id:"waste",label:"Merma / Waste"},{id:"notes",label:"Notas"},{id:"help",label:"Ayuda"}];
+      const setActiveTab=(id)=>setDb(s=>({...s,activeTab:id}));
+      const handleExport=()=>{ const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=`bar-manager-toolkit-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); };
+      const handleImport=(file)=>{ const r=new FileReader(); r.onload=()=>{ try{ setDb(JSON.parse(r.result)); }catch{ alert("Archivo inválido. Usa un JSON exportado por esta app."); } }; r.readAsText(file); };
+      return (<div className="min-h-screen bg-slate-50 text-slate-900">
+        <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-slate-200">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-2xl bg-slate-900 text-white grid place-items-center font-bold">BM</div>
+              <div><h1 className="text-xl font-semibold leading-tight">Bar Manager Toolkit</h1><p className="text-xs text-slate-500 -mt-0.5">Free, local-first tools for busy bar managers</p></div>
             </div>
-            <nav className="max-w-6xl mx-auto px-2 pb-2 overflow-x-auto">
-              <div className="flex gap-2">
-                {tabs.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => setActiveTab(t.id)}
-                    className={\`px-3 py-2 rounded-xl text-sm whitespace-nowrap border \${db.activeTab === t.id ? "bg-slate-900 text-white border-slate-900" : "bg-white hover:bg-slate-100 border-slate-200"}\`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-            </nav>
-          </header>
-
-          <main className="max-w-6xl mx-auto p-4">
-            {db.activeTab === "costing" && <RecipeCosting db={db} setDb={setDb} />}
-            {db.activeTab === "inventory" && <InventoryPar db={db} setDb={setDb} />}
-            {db.activeTab === "checklist" && <ShiftChecklist db={db} setDb={setDb} />}
-            {db.activeTab === "waste" && <WasteLog db={db} setDb={setDb} />}
-            {db.activeTab === "notes" && <Notes db={db} setDb={setDb} />}
-            {db.activeTab === "help" && <Help />}
-          </main>
-
-          <footer className="max-w-6xl mx-auto px-4 pb-10 text-xs text-slate-500">
-            <div className="mt-6 border-t pt-3">
-              Hecho con ❤️ para bartenders y bar managers. Datos guardados en tu navegador.
-            </div>
-          </footer>
-        </div>
-      );
-    }
-
-    function Section({ title, subtitle, right, children }) {
-      return (
-        <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-4">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-lg font-semibold">{title}</h2>
-              {subtitle && <p className="text-sm text-slate-500">{subtitle}</p>}
-            </div>
-            {right}
-          </div>
-          {children}
-        </section>
-      );
-    }
-
-    function RecipeCosting({ db, setDb }) {
-      const drinks = db.costing.drinks;
-
-      const addDrink = () => {
-        setDb((s) => ({
-          ...s,
-          costing: {
-            ...s.costing,
-            drinks: [
-              ...s.costing.drinks,
-              { id: (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)), name: "Nuevo cóctel", targetMarginPct: 75, ingredients: [], garnishCost: 0, overheadPerDrink: 0 },
-            ],
-          },
-        }));
-      };
-      const removeDrink = (id) => {
-        setDb((s) => ({
-          ...s,
-          costing: { ...s.costing, drinks: s.costing.drinks.filter((d) => d.id !== id) },
-        }));
-      };
-
-      return (
-        <div>
-          <Section title="Costeo de Recetas" subtitle="Calcula costo por cóctel, PVP sugerido y margen." right={<button onClick={addDrink} className="px-3 py-1.5 text-sm rounded-lg bg-slate-900 text-white">Añadir cóctel</button>}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {drinks.map((drink) => (
-                <DrinkCard key={drink.id} drink={drink} onChange={(upd) => updateDrink(setDb, drink.id, upd)} onRemove={() => removeDrink(drink.id)} />
-              ))}
-            </div>
-          </Section>
-        </div>
-      );
-    }
-
-    function updateDrink(setDb, id, updater) {
-      setDb((s) => ({
-        ...s,
-        costing: {
-          ...s.costing,
-          drinks: s.costing.drinks.map((d) => (d.id === id ? { ...d, ...updater(d) } : d)),
-        },
-      }));
-    }
-
-    function DrinkCard({ drink, onChange, onRemove }) {
-      const { costPerDrink, suggestPrice, marginPct } = React.useMemo(() => computeDrink(drink), [drink]);
-
-      const addIng = () => onChange(() => ({ ingredients: [...drink.ingredients, { id: (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)), name: "", unitSize: 750, unitCost: 0, qtyPerDrink: 0 }] }));
-      const remIng = (id) => onChange(() => ({ ingredients: drink.ingredients.filter((i) => i.id !== id) }));
-
-      const setField = (field, value) => onChange(() => ({ [field]: value }));
-      const setIng = (id, field, value) => onChange(() => ({ ingredients: drink.ingredients.map((i) => (i.id === id ? { ...i, [field]: value } : i)) }));
-
-      return (
-        <div className="border border-slate-200 rounded-xl p-3">
-          <div className="flex items-start justify-between gap-2">
-            <input value={drink.name} onChange={(e) => setField("name", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-medium" />
-            <button className="px-2 py-1 text-xs rounded-md bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100" onClick={onRemove}>Eliminar</button>
-          </div>
-
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-slate-500">
-                  <th className="py-1">Ingrediente</th>
-                  <th className="py-1">Tamaño unidad (ml/g)</th>
-                  <th className="py-1">Costo unidad</th>
-                  <th className="py-1">Cant. por trago (ml/g)</th>
-                  <th className="py-1"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {drink.ingredients.map((ing) => (
-                  <tr key={ing.id} className="border-t">
-                    <td className="py-1 pr-2"><input value={ing.name} onChange={(e) => setIng(ing.id, "name", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1" /></td>
-                    <td className="py-1 pr-2"><input type="number" value={ing.unitSize} onChange={(e) => setIng(ing.id, "unitSize", Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1" /></td>
-                    <td className="py-1 pr-2"><input type="number" step="0.01" value={ing.unitCost} onChange={(e) => setIng(ing.id, "unitCost", Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1" /></td>
-                    <td className="py-1 pr-2"><input type="number" value={ing.qtyPerDrink} onChange={(e) => setIng(ing.id, "qtyPerDrink", Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1" /></td>
-                    <td className="py-1"><button className="text-rose-600 hover:underline" onClick={() => remIng(ing.id)}>Quitar</button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-2 flex items-center gap-2">
-            <button onClick={addIng} className="px-2 py-1 text-xs rounded-md bg-slate-100 hover:bg-slate-200 border">Añadir ingrediente</button>
-            <div className="text-xs text-slate-500">Consejo: 30 ml = 1 oz aprox.</div>
-          </div>
-
-          <div className="mt-3 grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
-            <label className="flex flex-col">
-              <span className="text-slate-500">Costo de guarnición</span>
-              <input type="number" step="0.01" value={drink.garnishCost} onChange={(e) => setField("garnishCost", Number(e.target.value))} className="bg-slate-50 border border-slate-200 rounded px-3 py-2" />
-            </label>
-            <label className="flex flex-col">
-              <span className="text-slate-500">Overhead por trago</span>
-              <input type="number" step="0.01" value={drink.overheadPerDrink} onChange={(e) => setField("overheadPerDrink", Number(e.target.value))} className="bg-slate-50 border border-slate-200 rounded px-3 py-2" />
-            </label>
-            <label className="flex flex-col">
-              <span className="text-slate-500">Margen objetivo (%)</span>
-              <input type="number" value={drink.targetMarginPct} onChange={(e) => setField("targetMarginPct", Number(e.target.value))} className="bg-slate-50 border border-slate-200 rounded px-3 py-2" />
-            </label>
-            <div className="flex flex-col justify-end">
-              <div className="text-xs text-slate-500">Costo por trago</div>
-              <div className="text-base font-semibold">{currency(costPerDrink)}</div>
+            <div className="flex items-center gap-2">
+              <label className="px-3 py-1.5 text-sm rounded-xl bg-slate-100 hover:bg-slate-200 cursor-pointer">Importar JSON
+                <input type="file" accept="application/json" className="hidden" onChange={(e)=>e.target.files?.[0]&&handleImport(e.target.files[0])}/>
+              </label>
+              <button onClick={handleExport} className="px-3 py-1.5 text-sm rounded-xl bg-slate-900 text-white hover:opacity-90">Exportar</button>
             </div>
           </div>
-
-          <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-            <Stat label="PVP sugerido" value={currency(suggestPrice)} />
-            <Stat label="Margen con PVP sugerido" value={\`\${marginPct.toFixed(1)}%\`} />
-            <Stat label="Food cost aprox." value={\`\${(100 - marginPct).toFixed(1)}%\`} />
-          </div>
-        </div>
-      );
-    }
-
-    function Stat({ label, value }) {
-      return (
-        <div className="border rounded-lg p-3 bg-slate-50">
-          <div className="text-xs text-slate-500">{label}</div>
-          <div className="text-lg font-semibold">{value}</div>
-        </div>
-      );
-    }
-
-    function computeDrink(drink) {
-      const ingCost = (drink.ingredients || []).reduce((sum, i) => {
-        const perUnit = (Number(i.unitCost) || 0) / (Number(i.unitSize) || 1);
-        return sum + perUnit * (Number(i.qtyPerDrink) || 0);
-      }, 0);
-      const costPerDrink = ingCost + (Number(drink.garnishCost) || 0) + (Number(drink.overheadPerDrink) || 0);
-      const margin = Math.min(Math.max(Number(drink.targetMarginPct) || 0, 0), 95);
-      const suggestPrice = costPerDrink / ((1 - margin / 100) || 1);
-      const marginPct = suggestPrice ? (1 - costPerDrink / suggestPrice) * 100 : 0;
-      return { costPerDrink, suggestPrice, marginPct };
-    }
-
-    function InventoryPar({ db, setDb }) {
-      const items = db.inventory.items;
-
-      const addItem = () => setDb((s) => ({ ...s, inventory: { ...s.inventory, items: [...s.inventory.items, { id: (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)), name: "Nuevo ítem", onHand: 0, parLevel: 0, unitCost: 0 }] } }));
-      const removeItem = (id) => setDb((s) => ({ ...s, inventory: { ...s.inventory, items: s.inventory.items.filter((i) => i.id !== id) } }));
-      const setItem = (id, field, value) => setDb((s) => ({ ...s, inventory: { ...s.inventory, items: s.inventory.items.map((i) => (i.id === id ? { ...i, [field]: value } : i)) } }));
-
-      const totals = React.useMemo(() => {
-        const toOrder = items.reduce((sum, i) => sum + Math.max(0, (Number(i.parLevel) || 0) - (Number(i.onHand) || 0)), 0);
-        const stockValue = items.reduce((sum, i) => sum + (Number(i.onHand) || 0) * (Number(i.unitCost) || 0), 0);
-        return { toOrder, stockValue };
-      }, [items]);
-
-      return (
-        <Section title="Inventario & Par" subtitle="Calcula cantidad a ordenar y valor de stock." right={<button onClick={addItem} className="px-3 py-1.5 text-sm rounded-lg bg-slate-900 text-white">Añadir ítem</button>}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-slate-500">
-                  <th className="py-1">Ítem</th>
-                  <th className="py-1">En stock</th>
-                  <th className="py-1">Par</th>
-                  <th className="py-1">Costo unit.</th>
-                  <th className="py-1">A ordenar</th>
-                  <th className="py-1">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((it) => {
-                  const orderQty = Math.max(0, (Number(it.parLevel) || 0) - (Number(it.onHand) || 0));
-                  return (
-                    <tr key={it.id} className="border-t">
-                      <td className="py-1 pr-2"><input value={it.name} onChange={(e) => setItem(it.id, "name", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1" /></td>
-                      <td className="py-1 pr-2 w-24"><input type="number" value={it.onHand} onChange={(e) => setItem(it.id, "onHand", Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1" /></td>
-                      <td className="py-1 pr-2 w-24"><input type="number" value={it.parLevel} onChange={(e) => setItem(it.id, "parLevel", Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1" /></td>
-                      <td className="py-1 pr-2 w-28"><input type="number" step="0.01" value={it.unitCost} onChange={(e) => setItem(it.id, "unitCost", Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1" /></td>
-                      <td className="py-1 pr-2 w-20"><div className="px-2 py-1 bg-slate-100 rounded text-center">{orderQty}</div></td>
-                      <td className="py-1 w-24"><button onClick={() => removeItem(it.id)} className="text-rose-600 hover:underline">Eliminar</button></td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Stat label="Total a ordenar (unidades)" value={totals.toOrder} />
-            <Stat label="Valor estimado de stock" value={currency(totals.stockValue)} />
-          </div>
-        </Section>
-      );
-    }
-
-    function ShiftChecklist({ db, setDb }) {
-      const tasks = db.checklist.tasks;
-      const addTask = () => setDb((s) => ({ ...s, checklist: { ...s.checklist, tasks: [...s.checklist.tasks, { id: (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)), text: "Nueva tarea", done: false }] } }));
-      const setTask = (id, patch) => setDb((s) => ({ ...s, checklist: { ...s.checklist, tasks: s.checklist.tasks.map((t) => (t.id === id ? { ...t, ...patch } : t)) } }));
-      const removeTask = (id) => setDb((s) => ({ ...s, checklist: { ...s.checklist, tasks: s.checklist.tasks.filter((t) => t.id !== id) } }));
-      const clearDone = () => setDb((s) => ({ ...s, checklist: { ...s.checklist, tasks: s.checklist.tasks.map((t) => ({ ...t, done: false })) } }));
-
-      return (
-        <Section title="Checklist de Turno" subtitle="Abre, opera y cierra sin olvidar nada." right={<div className="flex gap-2"><button onClick={addTask} className="px-3 py-1.5 text-sm rounded-lg bg-slate-900 text-white">Añadir tarea</button><button onClick={clearDone} className="px-3 py-1.5 text-sm rounded-lg bg-slate-100 border">Reiniciar checks</button></div>}>
-          <ul className="space-y-2">
-            {tasks.map((t) => (
-              <li key={t.id} className="flex items-center gap-2 border rounded-lg p-2 bg-slate-50">
-                <input type="checkbox" checked={t.done} onChange={(e) => setTask(t.id, { done: e.target.checked })} className="w-5 h-5" />
-                <input value={t.text} onChange={(e) => setTask(t.id, { text: e.target.value })} className={\`flex-1 bg-transparent outline-none \${t.done ? "line-through text-slate-400" : ""}\`} />
-                <button onClick={() => removeTask(t.id)} className="text-rose-600 text-sm">Eliminar</button>
-              </li>
-            ))}
-          </ul>
-        </Section>
-      );
-    }
-
-    function WasteLog({ db, setDb }) {
-      const entries = db.waste.entries;
-      const [form, setForm] = React.useState({ dateISO: new Date().toISOString().slice(0, 10), item: "", qty: 0, estUnitCost: 0 });
-
-      const addEntry = () => {
-        if (!form.item) return;
-        setDb((s) => ({ ...s, waste: { ...s.waste, entries: [{ id: (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)), ...form }, ...s.waste.entries] } }));
-        setForm({ ...form, item: "", qty: 0, estUnitCost: 0 });
-      };
-      const removeEntry = (id) => setDb((s) => ({ ...s, waste: { ...s.waste, entries: s.waste.entries.filter((e) => e.id !== id) } }));
-
-      const totals = React.useMemo(() => {
-        const byDate = entries.reduce((acc, e) => {
-          const k = e.dateISO;
-          const cost = (Number(e.qty) || 0) * (Number(e.estUnitCost) || 0);
-          acc[k] = (acc[k] || 0) + cost;
-          return acc;
-        }, {});
-        const grand = Object.values(byDate).reduce((a, b) => a + b, 0);
-        return { byDate, grand };
-      }, [entries]);
-
-      return (
-        <Section title="Merma / Waste" subtitle="Registra pérdidas y calcula su costo.">
-          <div className="grid md:grid-cols-4 gap-3 mb-3">
-            <label className="flex flex-col text-sm">
-              <span className="text-slate-500">Fecha</span>
-              <input type="date" value={form.dateISO} onChange={(e) => setForm({ ...form, dateISO: e.target.value })} className="bg-slate-50 border border-slate-200 rounded px-3 py-2" />
-            </label>
-            <label className="flex flex-col text-sm md:col-span-2">
-              <span className="text-slate-500">Ítem</span>
-              <input value={form.item} onChange={(e) => setForm({ ...form, item: e.target.value })} className="bg-slate-50 border border-slate-200 rounded px-3 py-2" placeholder="Ej: Limones dañados" />
-            </label>
-            <label className="flex flex-col text-sm">
-              <span className="text-slate-500">Cantidad x Costo unit.</span>
-              <div className="flex gap-2">
-                <input type="number" value={form.qty} onChange={(e) => setForm({ ...form, qty: Number(e.target.value) })} className="flex-1 bg-slate-50 border border-slate-200 rounded px-3 py-2" placeholder="Qty" />
-                <input type="number" step="0.01" value={form.estUnitCost} onChange={(e) => setForm({ ...form, estUnitCost: Number(e.target.value) })} className="flex-1 bg-slate-50 border border-slate-200 rounded px-3 py-2" placeholder="Costo" />
-              </div>
-            </label>
-          </div>
-          <button onClick={addEntry} className="px-3 py-1.5 text-sm rounded-lg bg-slate-900 text-white">Añadir registro</button>
-
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-slate-500">
-                  <th className="py-1">Fecha</th>
-                  <th className="py-1">Ítem</th>
-                  <th className="py-1">Cant.</th>
-                  <th className="py-1">Costo unit.</th>
-                  <th className="py-1">Costo total</th>
-                  <th className="py-1">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {entries.map((e) => (
-                  <tr key={e.id} className="border-t">
-                    <td className="py-1 pr-2">{e.dateISO}</td>
-                    <td className="py-1 pr-2">{e.item}</td>
-                    <td className="py-1 pr-2">{e.qty}</td>
-                    <td className="py-1 pr-2">{currency((Number(e.estUnitCost)||0))}</td>
-                    <td className="py-1 pr-2">{currency((Number(e.qty)||0) * (Number(e.estUnitCost)||0))}</td>
-                    <td className="py-1 w-24"><button onClick={() => removeEntry(e.id)} className="text-rose-600 hover:underline">Eliminar</button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="border rounded-lg p-3 bg-slate-50">
-              <div className="text-xs text-slate-500">Costo total (todos los días)</div>
-              <div className="text-lg font-semibold">{currency(totals.grand)}</div>
+          <nav className="max-w-6xl mx-auto px-2 pb-2 overflow-x-auto">
+            <div className="flex gap-2">
+              {tabs.map(t=>(<button key={t.id} onClick={()=>setActiveTab(t.id)} className={`px-3 py-2 rounded-xl text-sm whitespace-nowrap border ${db.activeTab===t.id?"bg-slate-900 text-white border-slate-900":"bg-white hover:bg-slate-100 border-slate-200"}`}>{t.label}</button>))}
             </div>
-            <div className="border rounded-lg p-3 bg-slate-50">
-              <div className="text-xs text-slate-500">Resumen por día</div>
-              <div className="text-sm">
-                {Object.keys(totals.byDate).length === 0 && <div className="text-slate-400">Sin datos</div>}
-                {Object.entries(totals.byDate).map(([date, cost]) => (
-                  <div key={date} className="flex justify-between border-b last:border-0 py-1"><span>{date}</span><span className="font-medium">{currency(cost)}</span></div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Section>
-      );
+          </nav>
+        </header>
+        <main className="max-w-6xl mx-auto p-4">
+          {db.activeTab==="costing"&&<RecipeCosting db={db} setDb={setDb}/>}
+          {db.activeTab==="inventory"&&<InventoryPar db={db} setDb={setDb}/>}
+          {db.activeTab==="checklist"&&<ShiftChecklist db={db} setDb={setDb}/>}
+          {db.activeTab==="waste"&&<WasteLog db={db} setDb={setDb}/>}
+          {db.activeTab==="notes"&&<Notes db={db} setDb={setDb}/>}
+          {db.activeTab==="help"&&<Help/>}
+        </main>
+        <footer className="max-w-6xl mx-auto px-4 pb-10 text-xs text-slate-500"><div className="mt-6 border-t pt-3">Hecho con ❤️ para bartenders y bar managers. Datos guardados en tu navegador.</div></footer>
+      </div>);
     }
-
-    function Notes({ db, setDb }) {
-      const notes = db.notes || "";
-      return (
-        <Section title="Notas rápidas">
-          <textarea value={notes} onChange={(e) => setDb((s) => ({ ...s, notes: e.target.value }))} rows={12} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3" placeholder="Escribe ideas, recordatorios o minutas de reunión..." />
-        </Section>
-      );
-    }
-
-    function Help() {
-      return (
-        <Section title="Cómo usar esta app (gratis)" subtitle="Guía rápida para no programadores">
-          <ol className="list-decimal pl-5 space-y-2 text-sm">
-            <li><strong>Todo se guarda automáticamente</strong> en tu navegador (localStorage). Si borras el caché, se borra. Usa <em>Exportar</em> para respaldo.</li>
-            <li>En <strong>Costeo</strong>, agrega ingredientes con su <em>tamaño de unidad</em> (ml/g), <em>costo de unidad</em> y <em>cantidad por trago</em>. Ajusta el <em>margen objetivo</em> para ver el PVP sugerido.</li>
-            <li>En <strong>Inventario & Par</strong>, define <em>en stock</em>, <em>par</em> y <em>costo unitario</em>. La app sugiere <em>a ordenar</em> y muestra el valor de stock.</li>
-            <li>Usa la <strong>Checklist</strong> para abrir/operar/cerrar el bar sin olvidar nada. Puedes reiniciar los checks.</li>
-            <li>Registra <strong>Merma</strong> para visualizar el costo de pérdidas por día y total.</li>
-            <li>En <strong>Notas</strong> guarda ideas o minutas. Todo queda en el navegador.</li>
-            <li><strong>Exporta/Importa JSON</strong> para mover tus datos entre dispositivos o hacer backups.</li>
-            <li><strong>Publica gratis</strong>: Sube este archivo como raíz de tu repositorio y activa GitHub Pages en Settings → Pages.</li>
-          </ol>
-          <div className="mt-3 text-xs text-slate-500">
-            Nota: Esta es una herramienta educativa y de apoyo operativo. No reemplaza tus hojas contables oficiales.
-          </div>
-        </Section>
-      );
-    }
-
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+    function Section({title,subtitle,right,children}){return(<section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-4"><div className="flex items-center justify-between mb-3"><div><h2 className="text-lg font-semibold">{title}</h2>{subtitle&&<p className="text-sm text-slate-500">{subtitle}</p>}</div>{right}</div>{children}</section>);}
+    function RecipeCosting({db,setDb}){const drinks=db.costing.drinks; const addDrink=()=>{setDb(s=>({...s,costing:{...s.costing,drinks:[...s.costing.drinks,{id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),name:"Nuevo cóctel",targetMarginPct:75,ingredients:[],garnishCost:0,overheadPerDrink:0}]}}));}; const removeDrink=(id)=>{setDb(s=>({...s,costing:{...s.costing,drinks:s.costing.drinks.filter(d=>d.id!==id)}}));}; return(<div><Section title="Costeo de Recetas" subtitle="Calcula costo por cóctel, PVP sugerido y margen." right={<button onClick={addDrink} className="px-3 py-1.5 text-sm rounded-lg bg-slate-900 text-white">Añadir cóctel</button>}><div className="grid grid-cols-1 md:grid-cols-2 gap-4">{drinks.map(drink=>(<DrinkCard key={drink.id} drink={drink} onChange={(upd)=>updateDrink(setDb,drink.id,upd)} onRemove={()=>removeDrink(drink.id)}/>))}</div></Section></div>);}
+    function updateDrink(setDb,id,updater){setDb(s=>({...s,costing:{...s.costing,drinks:s.costing.drinks.map(d=>d.id===id?{...d,...updater(d)}:d)}}));}
+    function DrinkCard({drink,onChange,onRemove}){const {costPerDrink,suggestPrice,marginPct}=React.useMemo(()=>computeDrink(drink),[drink]); const addIng=()=>onChange(()=>({ingredients:[...drink.ingredients,{id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),name:"",unitSize:750,unitCost:0,qtyPerDrink:0}]})); const remIng=(id)=>onChange(()=>({ingredients:drink.ingredients.filter(i=>i.id!==id)})); const setField=(field,value)=>onChange(()=>({[field]:value})); const setIng=(id,field,value)=>onChange(()=>({ingredients:drink.ingredients.map(i=>i.id===id?{...i,[field]:value}:i)})); return(<div className="border border-slate-200 rounded-xl p-3"><div className="flex items-start justify-between gap-2"><input value={drink.name} onChange={e=>setField("name",e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-medium"/><button className="px-2 py-1 text-xs rounded-md bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100" onClick={onRemove}>Eliminar</button></div><div className="mt-3 overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left text-slate-500"><th className="py-1">Ingrediente</th><th className="py-1">Tamaño unidad (ml/g)</th><th className="py-1">Costo unidad</th><th className="py-1">Cant. por trago (ml/g)</th><th className="py-1"></th></tr></thead><tbody>{drink.ingredients.map(ing=>(<tr key={ing.id} className="border-t"><td className="py-1 pr-2"><input value={ing.name} onChange={e=>setIng(ing.id,"name",e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1"/></td><td className="py-1 pr-2"><input type="number" value={ing.unitSize} onChange={e=>setIng(ing.id,"unitSize",Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1"/></td><td className="py-1 pr-2"><input type="number" step="0.01" value={ing.unitCost} onChange={e=>setIng(ing.id,"unitCost",Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1"/></td><td className="py-1 pr-2"><input type="number" value={ing.qtyPerDrink} onChange={e=>setIng(ing.id,"qtyPerDrink",Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1"/></td><td className="py-1"><button className="text-rose-600 hover:underline" onClick={()=>remIng(ing.id)}>Quitar</button></td></tr>))}</tbody></table></div><div className="mt-2 flex items-center gap-2"><button onClick={addIng} className="px-2 py-1 text-xs rounded-md bg-slate-100 hover:bg-slate-200 border">Añadir ingrediente</button><div className="text-xs text-slate-500">Consejo: 30 ml = 1 oz aprox.</div></div><div className="mt-3 grid grid-cols-1 md:grid-cols-4 gap-3 text-sm"><label className="flex flex-col"><span className="text-slate-500">Costo de guarnición</span><input type="number" step="0.01" value={drink.garnishCost} onChange={e=>setField("garnishCost",Number(e.target.value))} className="bg-slate-50 border border-slate-200 rounded px-3 py-2"/></label><label className="flex flex-col"><span className="text-slate-500">Overhead por trago</span><input type="number" step="0.01" value={drink.overheadPerDrink} onChange={e=>setField("overheadPerDrink",Number(e.target.value))} className="bg-slate-50 border border-slate-200 rounded px-3 py-2"/></label><label className="flex flex-col"><span className="text-slate-500">Margen objetivo (%)</span><input type="number" value={drink.targetMarginPct} onChange={e=>setField("targetMarginPct",Number(e.target.value))} className="bg-slate-50 border border-slate-200 rounded px-3 py-2"/></label><div className="flex flex-col justify-end"><div className="text-xs text-slate-500">Costo por trago</div><div className="text-base font-semibold">{currency(costPerDrink)}</div></div></div><div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm"><Stat label="PVP sugerido" value={currency(suggestPrice)}/><Stat label="Margen con PVP sugerido" value={`${marginPct.toFixed(1)}%`}/><Stat label="Food cost aprox." value={`${(100-marginPct).toFixed(1)}%`}/></div></div>);}
+    function Stat({label,value}){return(<div className="border rounded-lg p-3 bg-slate-50"><div className="text-xs text-slate-500">{label}</div><div className="text-lg font-semibold">{value}</div></div>);}
+    function computeDrink(drink){const ingCost=(drink.ingredients||[]).reduce((sum,i)=>{const perUnit=(Number(i.unitCost)||0)/(Number(i.unitSize)||1);return sum+perUnit*(Number(i.qtyPerDrink)||0);},0); const costPerDrink=ingCost+(Number(drink.garnishCost)||0)+(Number(drink.overheadPerDrink)||0); const margin=Math.min(Math.max(Number(drink.targetMarginPct)||0,0),95); const suggestPrice=costPerDrink/((1-margin/100)||1); const marginPct=suggestPrice?(1-costPerDrink/suggestPrice)*100:0; return {costPerDrink,suggestPrice,marginPct};}
+    function InventoryPar({db,setDb}){const items=db.inventory.items; const addItem=()=>setDb(s=>({...s,inventory:{...s.inventory,items:[...s.inventory.items,{id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),name:"Nuevo ítem",onHand:0,parLevel:0,unitCost:0}]}})); const removeItem=(id)=>setDb(s=>({...s,inventory:{...s.inventory,items:s.inventory.items.filter(i=>i.id!==id)}})); const setItem=(id,field,value)=>setDb(s=>({...s,inventory:{...s.inventory,items:s.inventory.items.map(i=>i.id===id?{...i,[field]:value}:i)}})); const totals=React.useMemo(()=>{const toOrder=items.reduce((sum,i)=>sum+Math.max(0,(Number(i.parLevel)||0)-(Number(i.onHand)||0)),0); const stockValue=items.reduce((sum,i)=>sum+(Number(i.onHand)||0)*(Number(i.unitCost)||0),0); return {toOrder,stockValue};},[items]); return(<Section title="Inventario & Par" subtitle="Calcula cantidad a ordenar y valor de stock." right={<button onClick={addItem} className="px-3 py-1.5 text-sm rounded-lg bg-slate-900 text-white">Añadir ítem</button>}><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left text-slate-500"><th className="py-1">Ítem</th><th className="py-1">En stock</th><th className="py-1">Par</th><th className="py-1">Costo unit.</th><th className="py-1">A ordenar</th><th className="py-1">Acciones</th></tr></thead><tbody>{items.map(it=>{const orderQty=Math.max(0,(Number(it.parLevel)||0)-(Number(it.onHand)||0)); return(<tr key={it.id} className="border-t"><td className="py-1 pr-2"><input value={it.name} onChange={e=>setItem(it.id,"name",e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1"/></td><td className="py-1 pr-2 w-24"><input type="number" value={it.onHand} onChange={e=>setItem(it.id,"onHand",Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1"/></td><td className="py-1 pr-2 w-24"><input type="number" value={it.parLevel} onChange={e=>setItem(it.id,"parLevel",Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1"/></td><td className="py-1 pr-2 w-28"><input type="number" step="0.01" value={it.unitCost} onChange={e=>setItem(it.id,"unitCost",Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1"/></td><td className="py-1 pr-2 w-20"><div className="px-2 py-1 bg-slate-100 rounded text-center">{orderQty}</div></td><td className="py-1 w-24"><button onClick={()=>removeItem(it.id)} className="text-rose-600 hover:underline">Eliminar</button></td></tr>);})}</tbody></table></div><div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3"><Stat label="Total a ordenar (unidades)" value={totals.toOrder}/><Stat label="Valor estimado de stock" value={currency(totals.stockValue)}/></div></Section>);}
+    function ShiftChecklist({db,setDb}){const tasks=db.checklist.tasks; const addTask=()=>setDb(s=>({...s,checklist:{...s.checklist,tasks:[...s.checklist.tasks,{id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),text:"Nueva tarea",done:false}]}})); const setTask=(id,patch)=>setDb(s=>({...s,checklist:{...s.checklist,tasks:s.checklist.tasks.map(t=>t.id===id?{...t,...patch}:t)}})); const removeTask=(id)=>setDb(s=>({...s,checklist:{...s.checklist,tasks:s.checklist.tasks.filter(t=>t.id!==id)}})); const clearDone=()=>setDb(s=>({...s,checklist:{...s.checklist,tasks:s.checklist.tasks.map(t=>({...t,done:false}))}})); return(<Section title="Checklist de Turno" subtitle="Abre, opera y cierra sin olvidar nada." right={<div className="flex gap-2"><button onClick={addTask} className="px-3 py-1.5 text-sm rounded-lg bg-slate-900 text-white">Añadir tarea</button><button onClick={clearDone} className="px-3 py-1.5 text-sm rounded-lg bg-slate-100 border">Reiniciar checks</button></div>}><ul className="space-y-2">{tasks.map(t=>(<li key={t.id} className="flex items-center gap-2 border rounded-lg p-2 bg-slate-50"><input type="checkbox" checked={t.done} onChange={e=>setTask(t.id,{done:e.target.checked})} className="w-5 h-5"/><input value={t.text} onChange={e=>setTask(t.id,{text:e.target.value})} className={`flex-1 bg-transparent outline-none ${t.done?"line-through text-slate-400":""}`}/><button onClick={()=>removeTask(t.id)} className="text-rose-600 text-sm">Eliminar</button></li>))}</ul></Section>);}
+    function WasteLog({db,setDb}){const entries=db.waste.entries; const [form,setForm]=React.useState({dateISO:new Date().toISOString().slice(0,10),item:"",qty:0,estUnitCost:0}); const addEntry=()=>{ if(!form.item) return; setDb(s=>({...s,waste:{...s.waste,entries:[{id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),...form},...s.waste.entries]}})); setForm({...form,item:"",qty:0,estUnitCost:0}); }; const removeEntry=(id)=>setDb(s=>({...s,waste:{...s.waste,entries:s.waste.entries.filter(e=>e.id!==id)}})); const totals=React.useMemo(()=>{const byDate=entries.reduce((acc,e)=>{const k=e.dateISO; const cost=(Number(e.qty)||0)*(Number(e.estUnitCost)||0); acc[k]=(acc[k]||0)+cost; return acc; },{}); const grand=Object.values(byDate).reduce((a,b)=>a+b,0); return {byDate,grand};},[entries]); return(<Section title="Merma / Waste" subtitle="Registra pérdidas y calcula su costo."><div className="grid md:grid-cols-4 gap-3 mb-3"><label className="flex flex-col text-sm"><span className="text-slate-500">Fecha</span><input type="date" value={form.dateISO} onChange={e=>setForm({...form,dateISO:e.target.value})} className="bg-slate-50 border border-slate-200 rounded px-3 py-2"/></label><label className="flex flex-col text-sm md:col-span-2"><span className="text-slate-500">Ítem</span><input value={form.item} onChange={e=>setForm({...form,item:e.target.value})} className="bg-slate-50 border border-slate-200 rounded px-3 py-2" placeholder="Ej: Limones dañados"/></label><label className="flex flex-col text-sm"><span className="text-slate-500">Cantidad x Costo unit.</span><div className="flex gap-2"><input type="number" value={form.qty} onChange={e=>setForm({...form,qty:Number(e.target.value)})} className="flex-1 bg-slate-50 border border-slate-200 rounded px-3 py-2" placeholder="Qty"/><input type="number" step="0.01" value={form.estUnitCost} onChange={e=>setForm({...form,estUnitCost:Number(e.target.value)})} className="flex-1 bg-slate-50 border border-slate-200 rounded px-3 py-2" placeholder="Costo"/></div></label></div><button onClick={addEntry} className="px-3 py-1.5 text-sm rounded-lg bg-slate-900 text-white">Añadir registro</button><div className="mt-4 overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left text-slate-500"><th className="py-1">Fecha</th><th className="py-1">Ítem</th><th className="py-1">Cant.</th><th className="py-1">Costo unit.</th><th className="py-1">Costo total</th><th className="py-1">Acciones</th></tr></thead><tbody>{entries.map(e=>(<tr key={e.id} className="border-t"><td className="py-1 pr-2">{e.dateISO}</td><td className="py-1 pr-2">{e.item}</td><td className="py-1 pr-2">{e.qty}</td><td className="py-1 pr-2">{currency((Number(e.estUnitCost)||0))}</td><td className="py-1 pr-2">{currency((Number(e.qty)||0)*(Number(e.estUnitCost)||0))}</td><td className="py-1 w-24"><button onClick={()=>removeEntry(e.id)} className="text-rose-600 hover:underline">Eliminar</button></td></tr>))}</tbody></table></div><div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3"><div className="border rounded-lg p-3 bg-slate-50"><div className="text-xs text-slate-500">Costo total (todos los días)</div><div className="text-lg font-semibold">{currency(totals.grand)}</div></div><div className="border rounded-lg p-3 bg-slate-50"><div className="text-xs text-slate-500">Resumen por día</div><div className="text-sm">{Object.keys(totals.byDate).length===0&&<div className="text-slate-400">Sin datos</div>}{Object.entries(totals.byDate).map(([date,cost])=>(<div key={date} className="flex justify-between border-b last:border-0 py-1"><span>{date}</span><span className="font-medium">{currency(cost)}</span></div>))}</div></div></div></Section>);}
+    function Notes({db,setDb}){const notes=db.notes||""; return(<Section title="Notas rápidas"><textarea value={notes} onChange={e=>setDb(s=>({...s,notes:e.target.value}))} rows={12} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3" placeholder="Escribe ideas, recordatorios o minutas de reunión..."/></Section>);}
+    function Help(){return(<Section title="Cómo usar esta app (gratis)" subtitle="Guía rápida para no programadores"><ol className="list-decimal pl-5 space-y-2 text-sm"><li><strong>Todo se guarda automáticamente</strong> en tu navegador (localStorage). Si borras el caché, se borra. Usa <em>Exportar</em> para respaldo.</li><li>En <strong>Costeo</strong>, agrega ingredientes con su <em>tamaño de unidad</em> (ml/g), <em>costo de unidad</em> y <em>cantidad por trago</em>. Ajusta el <em>margen objetivo</em> para ver el PVP sugerido.</li><li>En <strong>Inventario & Par</strong>, define <em>en stock</em>, <em>par</em> y <em>costo unitario</em>. La app sugiere <em>a ordenar</em> y muestra el valor de stock.</li><li>Usa la <strong>Checklist</strong> para abrir/operar/cerrar el bar sin olvidar nada. Puedes reiniciar los checks.</li><li>Registra <strong>Merma</strong> para visualizar el costo de pérdidas por día y total.</li><li>En <strong>Notas</strong> guarda ideas o minutas. Todo queda en el navegador.</li><li><strong>Exporta/Importa JSON</strong> para mover tus datos entre dispositivos o hacer backups.</li><li><strong>Publica gratis</strong>: Sube este archivo como raíz de tu repositorio y activa GitHub Pages en Settings → Pages.</li></ol><div className="mt-3 text-xs text-slate-500">Nota: Esta es una herramienta educativa y de apoyo operativo. No reemplaza tus hojas contables oficiales.</div></Section>);}
+    const root = ReactDOM.createRoot(document.getElementById('root')); root.render(<App/>);
   </script>
 </body>
 </html>
