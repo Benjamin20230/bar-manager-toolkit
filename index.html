@@ -69,7 +69,7 @@
           {db.activeTab==="notes"&&<Notes db={db} setDb={setDb}/>}
           {db.activeTab==="help"&&<Help/>}
         </main>
-        <footer className="max-w-6xl mx-auto px-4 pb-10 text-xs text-slate-500"><div className="mt-6 border-t pt-3">Hecho con ❤️ para bartenders y bar managers. Datos guardados en tu navegador.</div></footer>
+        <footer className="max-w-6xl mx-auto px-4 pb-10 text-xs text-slate-500"><div className="mt-6 border-t pt-3">Hecho con ❤️ por Digital Drinks Consulting, para bartenders y bar managers. Datos guardados en tu navegador.</div></footer>
       </div>);
     }
     function Section({title,subtitle,right,children}){return(<section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-4"><div className="flex items-center justify-between mb-3"><div><h2 className="text-lg font-semibold">{title}</h2>{subtitle&&<p className="text-sm text-slate-500">{subtitle}</p>}</div>{right}</div>{children}</section>);}
