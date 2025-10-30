@@ -1,4 +1,4 @@
-# Bar Manager Toolkit — MVP
+# Bar Manager Cost — MVP
 
 App gratuita para bar managers (costeo, inventario & par, checklist, merma y notas). Datos guardados en tu navegador (localStorage).
 
